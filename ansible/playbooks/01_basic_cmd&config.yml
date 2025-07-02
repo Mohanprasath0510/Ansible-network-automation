@@ -1,0 +1,42 @@
+---
+- name: Basic Show Commands and Simple Config
+  hosts: sw1
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+    # 🔹 Show version
+    - name: Show version
+      cisco.ios.ios_command:
+        commands:
+          - show version
+      register: version_output
+
+    - name: Display show version output
+      debug:
+        var: version_output.stdout[0]
+
+    # 🔹 Show IP interface brief
+    - name: Show IP interface brief
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief
+      register: interface_output
+
+    - name: Display interface summary
+      debug:
+        var: interface_output.stdout[0]
+
+    # 🔹 Configure hostname
+    - name: Set hostname to 'LabRouter'
+      cisco.ios.ios_config:
+        lines:
+          - hostname LabRouter
+
+    # 🔹 Configure an interface
+    - name: Configure IP on GigabitEthernet1
+      cisco.ios.ios_config:
+        lines:
+          - interface GigabitEthernet1
+          - ip address 192.168.1.1 255.255.255.0
+          - no shutdown
