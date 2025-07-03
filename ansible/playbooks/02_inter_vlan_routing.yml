@@ -1,0 +1,39 @@
+---
+- name: VLAN, Trunking, and Inter-VLAN Routing Setup
+  hosts: switches
+  gather_facts: no
+  connection: network_cli
+
+  tasks:
+
+    - name: Create VLANs 10 and 20
+      cisco.ios.ios_vlan:
+        vlan_id: "{{ item.id }}"
+        name: "{{ item.name }}"
+        state: present
+      loop:
+        - { id: 10, name: 'Users' }
+        - { id: 20, name: 'Servers' }
+
+    - name: Configure trunk on interface GigabitEthernet1/0/1
+      cisco.ios.ios_interface:
+        name: GigabitEthernet1/0/1
+        mode: trunk
+        trunk_allowed_vlans: 10,20
+        state: up
+
+    - name: Create SVI for VLAN 10
+      cisco.ios.ios_interface:
+        name: Vlan10
+        enabled: true
+        ip_address: 192.168.10.1
+        ip_netmask: 255.255.255.0
+        state: up
+
+    - name: Create SVI for VLAN 20
+      cisco.ios.ios_interface:
+        name: Vlan20
+        enabled: true
+        ip_address: 192.168.20.1
+        ip_netmask: 255.255.255.0
+        state: up
