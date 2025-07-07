@@ -1,0 +1,44 @@
+---
+- name: CCNA Lab - STP, EtherChannel, and OSPF
+  hosts: cisco
+  gather_facts: no
+  vars:
+    ospf_process_id: 1
+    ospf_network: 192.168.1.0
+    ospf_wildcard: 0.0.0.255
+    ospf_area: 0
+
+  tasks:
+
+    - name: === [STP] Verify STP Role ===
+      when: "'switch' in inventory_hostname"
+      ios_command:
+        commands:
+          - show spanning-tree
+      register: stp_output
+
+    - name: Display STP Output
+      when: "'switch' in inventory_hostname"
+      debug:
+        var: stp_output.stdout_lines
+
+    - name: === [EtherChannel] Configure LACP on Interfaces ===
+      when: "'switch' in inventory_hostname"
+      ios_config:
+        lines:
+          - channel-group 1 mode active
+        parents: interface range GigabitEthernet1/0/1 - 2
+
+    - name: Configure Port-Channel Interface as Trunk
+      when: "'switch' in inventory_hostname"
+      ios_config:
+        lines:
+          - switchport mode trunk
+        parents: interface Port-channel1
+
+    - name: === [OSPF] Configure Basic OSPF ===
+      when: "'router' in inventory_hostname"
+      ios_config:
+        lines:
+          - router ospf {{ ospf_process_id }}
+          - network {{ ospf_network }} {{ ospf_wildcard }} area {{ ospf_area }}
